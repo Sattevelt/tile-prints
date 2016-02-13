@@ -19,7 +19,7 @@ $theme->setBackgroundColor('#185366')
       ->setTileWidth(50);
 
 // Create a canvas of 10 by 10 tiles
-$canvas = new \Oneway\TilePrints\Tile\TileCanvas(10, 10);
+$canvas = new \Oneway\TilePrints\Tile\TileCanvas(6, 8);
 
 // Capture debug output in the buffer
 ob_start();

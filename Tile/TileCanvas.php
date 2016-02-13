@@ -103,7 +103,7 @@ class TileCanvas
             } else {
                 // Check tile above for required exits
                 $tileAbove = $tiles[$i - $cols];
-                if ($tileAbove['exits'] & self::DIRECTION_BOTTOM) {
+                if ($tileAbove->getExits() & self::DIRECTION_BOTTOM) {
                     // Tile above has exit at bottom
                     $requiredExits += self::DIRECTION_TOP;
                     $possibleExits += self::DIRECTION_TOP;
@@ -123,7 +123,7 @@ class TileCanvas
             } else {
                 // Check tile to the right for required exits
                 $tileRight = $tiles[$i + 1];
-                if ($tileRight['exits'] & self::DIRECTION_LEFT) {
+                if ($tileRight->getExits() & self::DIRECTION_LEFT) {
                     // Tile to the right has exit at left
                     $requiredExits += self::DIRECTION_RIGHT;
                     $possibleExits += self::DIRECTION_RIGHT;
@@ -143,7 +143,7 @@ class TileCanvas
             } else {
                 // Check tile below for required exits
                 $tileBelow = $tiles[$i + $cols];
-                if ($tileBelow['exits'] & self::DIRECTION_TOP) {
+                if ($tileBelow->getExits() & self::DIRECTION_TOP) {
                     // Tile below has exit up
                     $requiredExits += self::DIRECTION_BOTTOM;
                     $possibleExits += self::DIRECTION_BOTTOM;
@@ -163,7 +163,7 @@ class TileCanvas
             } else {
                 // Check tile to the left for required exits
                 $tileLeft = $tiles[$i - 1];
-                if ($tileLeft['exits'] & self::DIRECTION_RIGHT) {
+                if ($tileLeft->getExits() & self::DIRECTION_RIGHT) {
                     // Tile to the left has exit up
                     $requiredExits += self::DIRECTION_LEFT;
                     $possibleExits += self::DIRECTION_LEFT;
@@ -188,12 +188,10 @@ class TileCanvas
             echo sprintf('%04d', decbin($selectedTile['exits'])) . "\n";
 
 
-            $tileObj = TileFactory::getInstanceByType($selectedTile['type']);
-            $tiles[$i] = array(
-                'tile' => $tileObj,
-                'rotation' => $selectedTile['rotation'],
-                'exits' => $selectedTile['exits'],
-            );
+            $tileObj = TileFactory::getInstance('curvy');
+            $tileObj->setType($selectedTile['type']);
+            $tileObj->setRotation($selectedTile['rotation']);
+            $tiles[$i] = $tileObj;
         }
 
         $this->tiles = $tiles;
@@ -215,16 +213,17 @@ class TileCanvas
             $this->getCols() * $theme->getTileWidth(),
             $this->getRows() * $theme->getTileHeight()
         );
-        foreach ($this->tiles as $index => $tileInfo) {
+        /** @var TileInterface $tile */
+        foreach ($this->tiles as $index => $tile) {
             $col = ($index - 1) % $cols;
             $row = floor(($index - 1) / $cols);
-            /** @var TileInterface $tile */
-            $tile = $tileInfo['tile'];
-            $rotation = $renderInSolvedState ? $tileInfo['rotation'] : $this->getRandomRotation();
+
+            if (! $renderInSolvedState) {
+                $tile->setRotation($this->getRandomRotation());
+            }
             $svg .= $tile->render(
                 $col * $theme->getTileWidth(),
                 $row * $theme->getTileHeight(),
-                $rotation,
                 $theme
             );
 

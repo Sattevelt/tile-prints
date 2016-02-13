@@ -1,7 +1,6 @@
 <?php
 namespace Oneway\TilePrints\Tile;
 
-use Exception;
 use ReflectionClass;
 
 class TileFactory

@@ -1,6 +1,8 @@
 <?php
 namespace Oneway\TilePrints\Tile;
 
+use stdClass;
+
 /**
  * Class TileCanvas
  *
@@ -87,99 +89,57 @@ class TileCanvas
         $tiles = array();
         $rows = $this->getRows();
         $cols = $this->getCols();
+        $allExits = new stdClass();
         $totalTiles = $rows * $cols;
+
         for ($i = 1; $i <= $totalTiles; $i++) {
-            $possibleExits = 0;
-            $forbiddenExits = 0;
-            $requiredExits = 0;
+            $allExits->possible = 0;
+            $allExits->forbidden = 0;
+            $allExits->required= 0;
 
             // What is above
             if ($i - $cols <= 0) {
                 // Top row can not have exit at top
-                $forbiddenExits += self::DIRECTION_TOP;
-            } elseif (! isset($tiles[$i - $cols])) {
-                // Tile above has not been defined
-                $possibleExits += self::DIRECTION_TOP;
+                $allExits->forbidden += self::DIRECTION_TOP;
             } else {
-                // Check tile above for required exits
-                $tileAbove = $tiles[$i - $cols];
-                if ($tileAbove->getExits() & self::DIRECTION_BOTTOM) {
-                    // Tile above has exit at bottom
-                    $requiredExits += self::DIRECTION_TOP;
-                    $possibleExits += self::DIRECTION_TOP;
-                } else {
-                    // Tile above has no exit at bottom
-                    $forbiddenExits += self::DIRECTION_TOP;
-                }
+                $tile = isset($tiles[$i - $cols]) ? $tiles[$i - $cols] : null;
+                $this->getAllExitTypes(self::DIRECTION_TOP, $allExits, $tile);
             }
 
             // What is to the right
-            if ($i % $cols == 0) {
-                // Tile in right row can not have exit at right
-                $forbiddenExits += self::DIRECTION_RIGHT;
-            } elseif (! isset($tiles[$i + 1])) {
-                // Tile to the right has not been defined
-                $possibleExits += self::DIRECTION_RIGHT;
+            if ($i % $cols <= 0) {
+                // Top row can not have exit at top
+                $allExits->forbidden += self::DIRECTION_RIGHT;
             } else {
-                // Check tile to the right for required exits
-                $tileRight = $tiles[$i + 1];
-                if ($tileRight->getExits() & self::DIRECTION_LEFT) {
-                    // Tile to the right has exit at left
-                    $requiredExits += self::DIRECTION_RIGHT;
-                    $possibleExits += self::DIRECTION_RIGHT;
-                } else {
-                    // Tile to the right has no exit at left
-                    $forbiddenExits += self::DIRECTION_RIGHT;
-                }
+                $tile = isset($tiles[$i + 1]) ? $tiles[$i + 1] : null;
+                $this->getAllExitTypes(self::DIRECTION_RIGHT, $allExits, $tile);
             }
 
             // What is below
             if ($i + $cols > $totalTiles) {
-                // Tile on bottom row can not have exit on bottom
-                $forbiddenExits += self::DIRECTION_BOTTOM;
-            } elseif (! isset($tiles[$i + $cols])) {
-                // Tile below has not been defined
-                $possibleExits += self::DIRECTION_BOTTOM;
+                // Top row can not have exit at top
+                $allExits->forbidden += self::DIRECTION_BOTTOM;
             } else {
-                // Check tile below for required exits
-                $tileBelow = $tiles[$i + $cols];
-                if ($tileBelow->getExits() & self::DIRECTION_TOP) {
-                    // Tile below has exit up
-                    $requiredExits += self::DIRECTION_BOTTOM;
-                    $possibleExits += self::DIRECTION_BOTTOM;
-                } else {
-                    // Tile below has no exit at left
-                    $forbiddenExits += self::DIRECTION_BOTTOM;
-                }
+                $tile = isset($tiles[$i + $cols]) ? $tiles[$i + $cols] : null;
+                $this->getAllExitTypes(self::DIRECTION_BOTTOM, $allExits, $tile);
             }
 
             // What is to the left
-            if ($i - 1 % $cols == 0) {
-                // Tile on left column can not have exit on left
-                $forbiddenExits += self::DIRECTION_LEFT;
-            } elseif (! isset($tiles[$i - 1])) {
-                // Tile to the left has not been defined
-                $possibleExits += self::DIRECTION_LEFT;
+            if (($i - 1) % $cols == 0) {
+                // Top row can not have exit at top
+                $allExits->forbidden += self::DIRECTION_LEFT;
             } else {
-                // Check tile to the left for required exits
-                $tileLeft = $tiles[$i - 1];
-                if ($tileLeft->getExits() & self::DIRECTION_RIGHT) {
-                    // Tile to the left has exit up
-                    $requiredExits += self::DIRECTION_LEFT;
-                    $possibleExits += self::DIRECTION_LEFT;
-                } else {
-                    // Tile to the left has no exit at left
-                    $forbiddenExits += self::DIRECTION_LEFT;
-                }
+                $tile = isset($tiles[$i - 1]) ? $tiles[$i - 1] : null;
+                $this->getAllExitTypes(self::DIRECTION_LEFT, $allExits, $tile);
             }
 
             echo "**********************************\n";
             echo "Tile $i has the following exit types: \n";
-            echo '- possibleExits: ' . sprintf('%04d', decbin($possibleExits)) . "\n";
-            echo '- requiredExits: ' . sprintf('%04d', decbin($requiredExits)) . "\n";
-            echo '- forbiddenExits: ' . sprintf('%04d', decbin($forbiddenExits)) . "\n";
+            echo '- possibleExits: ' . sprintf('%04d', decbin($allExits->possible)) . "\n";
+            echo '- requiredExits: ' . sprintf('%04d', decbin($allExits->required)) . "\n";
+            echo '- forbiddenExits: ' . sprintf('%04d', decbin($allExits->forbidden)) . "\n";
 
-            $eligibleTiles = $this->getEligibleTileTypes($possibleExits, $forbiddenExits, $requiredExits);
+            $eligibleTiles = $this->getEligibleTileTypes($allExits->possible, $allExits->forbidden, $allExits->required);
             $selectedTile = $eligibleTiles[array_rand($eligibleTiles, 1)];
 
             echo "Selected the following tile:\n- ";
@@ -195,6 +155,32 @@ class TileCanvas
         }
 
         $this->tiles = $tiles;
+    }
+
+    private function getAllExitTypes(
+        $direction,
+        $allExits,
+        TileInterface $compareTile = null
+    ) {
+        // This is dirty! Bitshifting would be more suitable.
+        $reverseDirection = ($direction <= self::DIRECTION_RIGHT)
+                          ? $direction * 4
+                          : $direction / 4;
+
+        if ($compareTile == null) {
+            // Tile above has not been defined
+            $allExits->possible += $direction;
+        } else {
+            // Check tile above for required exits
+            if ($compareTile->getExits() & $reverseDirection) {
+                // Tile above has exit at bottom
+                $allExits->required += $direction;
+                $allExits->possible += $direction;
+            } else {
+                // Tile above has no exit at bottom
+                $allExits->forbidden += $direction;
+            }
+        }
     }
 
     /**

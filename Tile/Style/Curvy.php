@@ -6,8 +6,6 @@ use Oneway\TilePrints\Tile\TileTheme;
 
 class Curvy extends AbstractTile
 {
-    private $curveSvgFormat = '<path d="M %1$s %2$s Q %3$s %4$s %5$s %6$s" class="curve" />';
-
     protected $standardExits = array(
         'zero' => 0b0000,
         'one' => 0b0001,

@@ -9,15 +9,41 @@ function my_autoloader($class)
 }
 spl_autoload_register('my_autoloader');
 
+$colorSets = array(
+    'basicBlue' => array(
+        'color' => '#2C9ABF',
+        'bgcolor' => '#185366'
+    ),
+    'neonBlueGreen' => array(
+        'color' => '#24F8DF',
+        'bgcolor' => '#04332E'
+    ),
+    'neonGreen' => array(
+        'color' => '#46FC25',
+        'bgcolor' => '#0B3304'
+    ),
+    'neonPurple' => array(
+        'color' => '#D71E8A',
+        'bgcolor' => '#330420'
+    ),
+    'neonOrange' => array(
+        'color' => '#D0351D',
+        'bgcolor' => '#330A04'
+    ),
+    'neonBlue' => array(
+        'color' => '#173FAC',
+        'bgcolor' => '#041033'
+    ),
+);
 
 // Define a theme used for rendering
 $theme = new \Oneway\TilePrints\Tile\TileTheme();
-$theme->setBackgroundColor('#185366')
-      ->setStrokeColor('#2C9ABF')
-      ->setTileSize(10);
+$theme->setBackgroundColor('#04332E')
+      ->setStrokeColor('#24F8DF')
+      ->setTileSize(50);
 
 // Create a canvas of 10 by 10 tiles
-$canvas = new \Oneway\TilePrints\Tile\TileCanvas(150, 60);
+$canvas = new \Oneway\TilePrints\Tile\TileCanvas(10, 10);
 
 // Capture debug output in the buffer
 ob_start();

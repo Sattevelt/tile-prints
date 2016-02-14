@@ -14,12 +14,10 @@ spl_autoload_register('my_autoloader');
 $theme = new \Oneway\TilePrints\Tile\TileTheme();
 $theme->setBackgroundColor('#185366')
       ->setStrokeColor('#2C9ABF')
-      ->setStrokeWidth(4)
-      ->setTileHeight(50)
-      ->setTileWidth(50);
+      ->setTileSize(10);
 
 // Create a canvas of 10 by 10 tiles
-$canvas = new \Oneway\TilePrints\Tile\TileCanvas(6, 8);
+$canvas = new \Oneway\TilePrints\Tile\TileCanvas(150, 60);
 
 // Capture debug output in the buffer
 ob_start();
@@ -30,4 +28,4 @@ ob_end_clean();
 $svg = $canvas->render($theme, true);
 
 echo '<html><body>';
-echo $svg . '<textarea rows="30" cols="80">' . $debug . '</textarea></body></html>';
+echo $svg;// . '<textarea rows="30" cols="80">' . $debug . '</textarea></body></html>';

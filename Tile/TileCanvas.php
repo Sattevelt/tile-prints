@@ -139,7 +139,11 @@ class TileCanvas
             echo '- requiredExits: ' . sprintf('%04d', decbin($allExits->required)) . "\n";
             echo '- forbiddenExits: ' . sprintf('%04d', decbin($allExits->forbidden)) . "\n";
 
-            $eligibleTiles = $this->getEligibleTileTypes($allExits->possible, $allExits->forbidden, $allExits->required);
+            $eligibleTiles = $this->getEligibleTileTypes(
+                $allExits->possible,
+                $allExits->forbidden,
+                $allExits->required
+            );
             $selectedTile = $eligibleTiles[array_rand($eligibleTiles, 1)];
 
             echo "Selected the following tile:\n- ";
@@ -194,11 +198,14 @@ class TileCanvas
     public function render(TileTheme $theme, $renderInSolvedState = false)
     {
         $cols = $this->getCols();
+        $offset = 150;
         $svg = sprintf(
             '<svg width="%1$s" height="%2$s">',
-            $this->getCols() * $theme->getTileWidth(),
-            $this->getRows() * $theme->getTileHeight()
+            $this->getCols() * $theme->getTileSize() + $offset * 2,
+            $this->getRows() * $theme->getTileSize() + $offset * 2
         );
+
+        $svg .= $this->tiles[1]->getStyles($theme);
         /** @var TileInterface $tile */
         foreach ($this->tiles as $index => $tile) {
             $col = ($index - 1) % $cols;
@@ -208,8 +215,8 @@ class TileCanvas
                 $tile->setRotation($this->getRandomRotation());
             }
             $svg .= $tile->render(
-                $col * $theme->getTileWidth(),
-                $row * $theme->getTileHeight(),
+                $col * $theme->getTileSize() + $offset,
+                $row * $theme->getTileSize() + $offset,
                 $theme
             );
 

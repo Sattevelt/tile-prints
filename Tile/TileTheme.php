@@ -6,17 +6,11 @@ class TileTheme
     /** @var string */
     private $backgroundColor = '#FFFFFF';
 
-    /** @var int */
-    private $strokeWidth = '8';
-
     /** @var string */
     private $strokeColor = '#000000';
 
     /** @var int */
-    private $tileWidth = 50;
-
-    /** @var int */
-    private $tileHeight = 50;
+    private $tileSize = 50;
 
     /**
      * @return string
@@ -33,24 +27,6 @@ class TileTheme
     public function setBackgroundColor($backgroundColor)
     {
         $this->backgroundColor = $backgroundColor;
-        return $this;
-    }
-
-    /**
-     * @return int
-     */
-    public function getStrokeWidth()
-    {
-        return $this->strokeWidth;
-    }
-
-    /**
-     * @param $strokeWidth
-     * @return $this
-     */
-    public function setStrokeWidth($strokeWidth)
-    {
-        $this->strokeWidth = $strokeWidth;
         return $this;
     }
 
@@ -75,36 +51,18 @@ class TileTheme
     /**
      * @return int
      */
-    public function getTileWidth()
+    public function getTileSize()
     {
-        return $this->tileWidth;
+        return $this->tileSize;
     }
 
     /**
-     * @param int $tileWidth
+     * @param int $tileSize
      * @return TileTheme
      */
-    public function setTileWidth($tileWidth)
+    public function setTileSize($tileSize)
     {
-        $this->tileWidth = $tileWidth;
-        return $this;
-    }
-
-    /**
-     * @return int
-     */
-    public function getTileHeight()
-    {
-        return $this->tileHeight;
-    }
-
-    /**
-     * @param int $tileHeight
-     * @return TileTheme
-     */
-    public function setTileHeight($tileHeight)
-    {
-        $this->tileHeight = $tileHeight;
+        $this->tileSize = $tileSize;
         return $this;
     }
 }

@@ -11,14 +11,8 @@ abstract class AbstractTile implements TileInterface
      * Each tile type has exits defined as a 4 bit binary number.
      * The smallest bit is the top direction, and going clockwise with increasing bit values.
      * @var int[] */
-    private $standardExits = array(
-        'zero' => 0b0000,
-        'one' => 0b0001,
-        'twoAngle' => 0b0011,
-        'twoStraight' => 0b0101,
-        'three' => 0b0111,
-        'four' => 0b1111
-    );
+
+    abstract public function getStandardExits($type);
 
     /**
      * @return string
@@ -59,7 +53,7 @@ abstract class AbstractTile implements TileInterface
     {
         // Normalise rotation steps. (6 rotation steps is equal to 1 full revolution and 2 steps)
         $rotationSteps = ((int)($this->getRotation() / 90)) % 4;
-        $exits = $this->standardExits[$this->getType()];
+        $exits = $this->getStandardExits($this->getType());
 
         while ($rotationSteps > 0) {
             $exits = $exits << 1;
@@ -70,6 +64,27 @@ abstract class AbstractTile implements TileInterface
         }
 
         return $exits;
+    }
+
+    public function getStyles(TileTheme $theme)
+    {
+        $svg = '<defs><style type="text/css"><![CDATA[' . PHP_EOL;
+        foreach ($this->styles as $name => $style) {
+            $svg .= $name . ' {';
+            foreach ($style as $key => $value) {
+                $value = str_replace('#color#', $theme->getStrokeColor(), $value);
+                $value = str_replace('#bgcolor#', $theme->getBackgroundColor(), $value);
+                if ($key == 'stroke-width') {
+                    $value = ($value / 100) * $theme->getTileSize();
+                }
+                $svg .= $key . ':' . $value . ';';
+            }
+            $svg .= '}' . PHP_EOL;
+        }
+
+        $svg .= ']]></style></defs>';
+
+        return $svg;
     }
 
     /**
@@ -96,18 +111,16 @@ abstract class AbstractTile implements TileInterface
                 $offsetX,
                 $offsetY,
                 $this->getRotation(),
-                $theme->getTileWidth() / 2,
-                $theme->getTileHeight() / 2
+                $theme->getTileSize() / 2,
+                $theme->getTileSize() / 2
             ),
-            'stroke' => $theme->getStrokeColor(),
-            'stroke-width' => $theme->getStrokeWidth(),
-            'fill' => 'none'
         );
         $rectProperties = array(
-            'width' => $theme->getTileWidth(),
-            'height' => $theme->getTileHeight(),
+            'width' => $theme->getTileSize(),
+            'height' => $theme->getTileSize(),
             'fill' => $theme->getBackgroundColor(),
-            'stroke-width' => 1 // Debug. Set to 0 for 'pretty' output
+            'stroke' => $theme->getStrokeColor(),
+            'stroke-width' => 0 // Debug. Set to 0 for 'pretty' output
         );
 
         $outerFormat = '<g ';
@@ -122,18 +135,60 @@ abstract class AbstractTile implements TileInterface
         }
         $outerFormat .= '/>' . PHP_EOL;
 
-        return $outerFormat . $innerSvg . PHP_EOL . '</g>' . PHP_EOL;
+        return $outerFormat
+                . $innerSvg
+                . PHP_EOL
+                . '</g>'
+                . PHP_EOL;
     }
 
-    abstract public function renderZero(TileTheme $theme);
+    protected function getSvgCurveForAnglesAndCenter(
+        $angleStart,
+        $angleEnd,
+        $radius,
+        $centerX,
+        $centerY,
+        $className
+    ) {
+        $coords = $this->getCoordinatesForAnglesAndCenter(
+            $angleStart,
+            $angleEnd,
+            $radius,
+            $centerX,
+            $centerY
+        );
 
-    abstract public function renderOne(TileTheme $theme);
+        $svg = sprintf(
+            '<path d="M %1$s %2$s A%3$s,%4$s 0 0,0 %5$s,%6$s" class="%7$s"/>',
+            $coords['x1'],
+            $coords['y1'],
+            $radius,
+            $radius,
+            $coords['x2'],
+            $coords['y2'],
+            $className
+        );
 
-    abstract public function renderTwoAngle(TileTheme $theme);
+        return $svg;
+    }
 
-    abstract public function renderTwoStraight(TileTheme $theme);
+    protected function getCoordinatesForAnglesAndCenter(
+        $angleStart,
+        $angleEnd,
+        $radius,
+        $centerX,
+        $centerY
+    ) {
 
-    abstract public function renderThree(TileTheme $theme);
+        $angleStartRad = deg2rad($angleStart);
+        $angleEndRad = deg2rad($angleEnd);
+        $coords = [
+            'x1' => sin($angleStartRad) * $radius + $centerX,
+            'y1' => cos($angleStartRad) * $radius + $centerY,
+            'x2' => sin($angleEndRad) * $radius + $centerX,
+            'y2' => cos($angleEndRad) * $radius +  $centerY,
+        ];
 
-    abstract public function renderFour(TileTheme $theme);
+        return $coords;
+    }
 }

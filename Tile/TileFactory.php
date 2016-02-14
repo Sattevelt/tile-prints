@@ -7,7 +7,7 @@ class TileFactory
 {
     public static function getInstance($style)
     {
-        $className = __NAMESPACE__ . '\\' . ucfirst($style) . 'Tile';
+        $className = __NAMESPACE__ . '\\Style\\' . ucfirst($style);
         $reflClass = new ReflectionClass($className);
         $tileObj = $reflClass->newInstance();
 

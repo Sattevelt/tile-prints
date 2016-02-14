@@ -151,8 +151,7 @@ class TileCanvas
             echo $selectedTile['rotation'] . ' | ';
             echo sprintf('%04d', decbin($selectedTile['exits'])) . "\n";
 
-
-            $tileObj = TileFactory::getInstance('curvy');
+            $tileObj = TileFactory::getInstance('doubleCurvy');
             $tileObj->setType($selectedTile['type']);
             $tileObj->setRotation($selectedTile['rotation']);
             $tiles[$i] = $tileObj;

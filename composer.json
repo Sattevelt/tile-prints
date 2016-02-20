@@ -1,0 +1,24 @@
+{
+  "name": "vendor_name/package_name",
+  "description": "description_text",
+  "minimum-stability": "stable",
+  "license": "proprietary",
+  "authors": [
+    {
+      "name": "Steven Attevelt",
+      "email": "sattevelt@gmail.com"
+    }
+  ],
+  "autoload": {
+    "psr-4": {
+      "Oneway\\TilePrints\\": ""
+    }
+  },
+  "require-dev" : {
+    "phpcheckstyle/phpcheckstyle": "0.*",
+    "squizlabs/php_codesniffer": "2.*",
+    "phpmd/phpmd": "2.*",
+    "phpunit/phpunit": "5.*",
+    "phpunit/dbunit": "2.*"
+  }
+}

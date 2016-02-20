@@ -18,12 +18,7 @@ class DoubleCurvy extends AbstractTile
     protected $styles = array(
         '.curve' => array(
             'stroke' => '#color#',
-            'stroke-width' => 2,
-            'fill' => 'none'
-        ),
-        '.centerCurve' => array(
-            'stroke' => '#ff0000',
-            'stroke-width' => 1,
+            'stroke-width' => 3,
             'fill' => 'none'
         )
     );

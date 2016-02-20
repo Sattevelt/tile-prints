@@ -1,13 +1,6 @@
 <?php
 
-// Yeah, not really nice. Gets the job done, though :)
-function my_autoloader($class)
-{
-    $class = str_replace('Oneway\\TilePrints\\', '', $class);
-    $class = str_replace('\\', '/', $class);
-    require_once $class . '.php';
-}
-spl_autoload_register('my_autoloader');
+require_once "bootstrap.php";
 
 $colorSets = array(
     'basicBlue' => array(
@@ -38,12 +31,12 @@ $colorSets = array(
 
 // Define a theme used for rendering
 $theme = new \Oneway\TilePrints\Tile\TileTheme();
-$theme->setBackgroundColor('#04332E')
-      ->setStrokeColor('#24F8DF')
-      ->setTileSize(50);
+$theme->setBackgroundColor('#dddddd')
+      ->setStrokeColor('#444444')
+      ->setTileSize(30);
 
 // Create a canvas of 10 by 10 tiles
-$canvas = new \Oneway\TilePrints\Tile\TileCanvas(10, 10);
+$canvas = new \Oneway\TilePrints\Tile\TileCanvas(50, 30);
 
 // Capture debug output in the buffer
 ob_start();

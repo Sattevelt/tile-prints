@@ -91,12 +91,7 @@ class TileCanvas
         $cols = $this->getCols();
         $allExits = new stdClass();
         $totalTiles = $rows * $cols;
-        $directions = array(
-            self::DIRECTION_TOP,
-            self::DIRECTION_RIGHT,
-            self::DIRECTION_BOTTOM,
-            self::DIRECTION_LEFT
-        );
+        $directions = array(self::DIRECTION_TOP, self::DIRECTION_RIGHT, self::DIRECTION_BOTTOM, self::DIRECTION_LEFT);
 
         for ($i = 1; $i <= $totalTiles; $i++) {
             $allExits->possible = 0;
@@ -105,19 +100,13 @@ class TileCanvas
 
             foreach ($directions as $direction) {
                 if ($this->getTileIsAtBorder($i, $direction)) {
-                    // Top row can not have exit at top
                     $allExits->forbidden += $direction;
                 } else {
                     $tile = $this->getTileInDirection($i, $direction);
                     $this->getAllExitTypes($direction, $allExits, $tile);
                 }
             }
-
-            $eligibleTiles = $this->getEligibleTileTypes(
-                $allExits->possible,
-                $allExits->forbidden,
-                $allExits->required
-            );
+            $eligibleTiles = $this->getEligibleTileTypes($allExits);
 
             $selectedTile = $eligibleTiles[array_rand($eligibleTiles, 1)];
             $tileObj = TileFactory::getInstance('doubleCurvy');
@@ -200,13 +189,11 @@ class TileCanvas
      * - Are all available in $possibleExits
      * - At least match all of the $requiredExits
      *
-     * @param int $possibleExits
-     * @param int $forbiddenExits
-     * @param int $requiredExits
+     * @param stdClass $exits
      * @return array[] Tiles that fit all requirements given in the 3 exit ints.
      *                 array('type' =>, 'rotation' =>, 'exits' =>);
      */
-    public function getEligibleTileTypes($possibleExits, $forbiddenExits, $requiredExits)
+    public function getEligibleTileTypes($exits)
     {
         $eligibleTiles = array();
         $allTiles = array( // All possible combo's. Filtered in giant if statement below.
@@ -230,25 +217,25 @@ class TileCanvas
         echo "The following tiles are rejected: \n";
         foreach ($allTiles as $tile) {
             if (// Has forbidden exits?
-                ($tile['exits'] & $forbiddenExits)
+                ($tile['exits'] & $exits->forbidden)
             ) {
                 echo ' - ' . $tile['type'] . ' | ' . $tile['rotation'] . ' : forbidden' . "\n";
                 continue;
             }
             if (// Has exit         of direction...           that is not part of $possibleExits
-                ($tile['exits'] & self::DIRECTION_TOP && ! ($possibleExits & self::DIRECTION_TOP)) ||
-                ($tile['exits'] & self::DIRECTION_RIGHT && ! ($possibleExits & self::DIRECTION_RIGHT)) ||
-                ($tile['exits'] & self::DIRECTION_BOTTOM && ! ($possibleExits & self::DIRECTION_BOTTOM)) ||
-                ($tile['exits'] & self::DIRECTION_LEFT && ! ($possibleExits & self::DIRECTION_LEFT))
+                ($tile['exits'] & self::DIRECTION_TOP && ! ($exits->possible & self::DIRECTION_TOP)) ||
+                ($tile['exits'] & self::DIRECTION_RIGHT && ! ($exits->possible & self::DIRECTION_RIGHT)) ||
+                ($tile['exits'] & self::DIRECTION_BOTTOM && ! ($exits->possible & self::DIRECTION_BOTTOM)) ||
+                ($tile['exits'] & self::DIRECTION_LEFT && ! ($exits->possible & self::DIRECTION_LEFT))
             ) {
                 echo ' - ' . $tile['type'] . ' | ' . $tile['rotation'] . ' : possible' . "\n";
                 continue;
             }
             if (// Required exit...  of direction...           is not available for current tile
-                ($requiredExits & self::DIRECTION_TOP && ! ($tile['exits'] & self::DIRECTION_TOP)) ||
-                ($requiredExits & self::DIRECTION_RIGHT && ! ($tile['exits'] & self::DIRECTION_RIGHT)) ||
-                ($requiredExits & self::DIRECTION_BOTTOM && ! ($tile['exits'] & self::DIRECTION_BOTTOM)) ||
-                ($requiredExits & self::DIRECTION_LEFT && ! ($tile['exits'] & self::DIRECTION_LEFT))
+                ($exits->required & self::DIRECTION_TOP && ! ($tile['exits'] & self::DIRECTION_TOP)) ||
+                ($exits->required & self::DIRECTION_RIGHT && ! ($tile['exits'] & self::DIRECTION_RIGHT)) ||
+                ($exits->required & self::DIRECTION_BOTTOM && ! ($tile['exits'] & self::DIRECTION_BOTTOM)) ||
+                ($exits->required & self::DIRECTION_LEFT && ! ($tile['exits'] & self::DIRECTION_LEFT))
             ) {
                 echo ' - ' . $tile['type'] . ' | ' . $tile['rotation'] . ' : required' . "\n";
                 continue;

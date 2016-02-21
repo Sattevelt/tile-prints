@@ -103,7 +103,6 @@ class TileCanvas
             $allExits->forbidden = 0;
             $allExits->required= 0;
 
-
             foreach ($directions as $direction) {
                 if ($this->getTileIsAtBorder($i, $direction)) {
                     // Top row can not have exit at top
@@ -114,24 +113,13 @@ class TileCanvas
                 }
             }
 
-            echo "**********************************\n";
-            echo "Tile $i has the following exit types: \n";
-            echo '- possibleExits: ' . sprintf('%04d', decbin($allExits->possible)) . "\n";
-            echo '- requiredExits: ' . sprintf('%04d', decbin($allExits->required)) . "\n";
-            echo '- forbiddenExits: ' . sprintf('%04d', decbin($allExits->forbidden)) . "\n";
-
             $eligibleTiles = $this->getEligibleTileTypes(
                 $allExits->possible,
                 $allExits->forbidden,
                 $allExits->required
             );
+
             $selectedTile = $eligibleTiles[array_rand($eligibleTiles, 1)];
-
-            echo "Selected the following tile:\n- ";
-            echo $selectedTile['type'] . ' | ';
-            echo $selectedTile['rotation'] . ' | ';
-            echo sprintf('%04d', decbin($selectedTile['exits'])) . "\n";
-
             $tileObj = TileFactory::getInstance('doubleCurvy');
             $tileObj->setType($selectedTile['type']);
             $tileObj->setRotation($selectedTile['rotation']);

@@ -30,7 +30,7 @@ class DoubleCurvy extends AbstractTile
         return $this->standardExits[$type];
     }
 
-    public function renderZero(TileTheme $theme)
+    public function renderZero()
     {
         return '';
     }

@@ -105,8 +105,6 @@ class TileCanvas
 
 
             foreach ($directions as $direction) {
-                var_dump($this->getTileIsAtBorder($i, $direction));
-
                 if ($this->getTileIsAtBorder($i, $direction)) {
                     // Top row can not have exit at top
                     $allExits->forbidden += $direction;

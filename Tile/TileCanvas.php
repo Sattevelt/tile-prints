@@ -184,7 +184,7 @@ class TileCanvas
         );
 
         $svg .= $this->tiles[1]->getStyles($theme);
-        /** @var TileInterface $tile */
+            /** @var TileInterface $tile */
         foreach ($this->tiles as $index => $tile) {
             $col = ($index - 1) % $cols;
             $row = floor(($index - 1) / $cols);
@@ -280,7 +280,6 @@ class TileCanvas
      */
     private function getTileInDirection($currentIndex, $direction)
     {
-        $index = null;
         $cols = $this->getCols();
 
         switch ($direction) {
@@ -298,7 +297,6 @@ class TileCanvas
                 break;
             default:
                 throw new Exception('Illegal direction');
-                break;
         }
         $tile = isset($this->tiles[$index]) ? $this->tiles[$index] : null;
 
@@ -315,7 +313,6 @@ class TileCanvas
     {
         $cols = $this->getCols();
         $totalTiles = $cols * $this->getRows();
-        $atBorder = false;
 
         switch ($direction) {
             case self::DIRECTION_TOP:
@@ -332,7 +329,6 @@ class TileCanvas
                 break;
             default:
                 throw new Exception('Illegal direction');
-                break;
         }
 
         return $atBorder;

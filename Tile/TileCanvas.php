@@ -1,6 +1,7 @@
 <?php
 namespace Oneway\TilePrints\Tile;
 
+use Exception;
 use stdClass;
 
 /**
@@ -86,51 +87,33 @@ class TileCanvas
      */
     public function generate()
     {
-        $tiles = array();
         $rows = $this->getRows();
         $cols = $this->getCols();
         $allExits = new stdClass();
         $totalTiles = $rows * $cols;
+        $directions = array(
+            self::DIRECTION_TOP,
+            self::DIRECTION_RIGHT,
+            self::DIRECTION_BOTTOM,
+            self::DIRECTION_LEFT
+        );
 
         for ($i = 1; $i <= $totalTiles; $i++) {
             $allExits->possible = 0;
             $allExits->forbidden = 0;
             $allExits->required= 0;
 
-            // What is above
-            if ($i - $cols <= 0) {
-                // Top row can not have exit at top
-                $allExits->forbidden += self::DIRECTION_TOP;
-            } else {
-                $tile = isset($tiles[$i - $cols]) ? $tiles[$i - $cols] : null;
-                $this->getAllExitTypes(self::DIRECTION_TOP, $allExits, $tile);
-            }
 
-            // What is to the right
-            if ($i % $cols <= 0) {
-                // Top row can not have exit at top
-                $allExits->forbidden += self::DIRECTION_RIGHT;
-            } else {
-                $tile = isset($tiles[$i + 1]) ? $tiles[$i + 1] : null;
-                $this->getAllExitTypes(self::DIRECTION_RIGHT, $allExits, $tile);
-            }
+            foreach ($directions as $direction) {
+                var_dump($this->getTileIsAtBorder($i, $direction));
 
-            // What is below
-            if ($i + $cols > $totalTiles) {
-                // Top row can not have exit at top
-                $allExits->forbidden += self::DIRECTION_BOTTOM;
-            } else {
-                $tile = isset($tiles[$i + $cols]) ? $tiles[$i + $cols] : null;
-                $this->getAllExitTypes(self::DIRECTION_BOTTOM, $allExits, $tile);
-            }
-
-            // What is to the left
-            if (($i - 1) % $cols == 0) {
-                // Top row can not have exit at top
-                $allExits->forbidden += self::DIRECTION_LEFT;
-            } else {
-                $tile = isset($tiles[$i - 1]) ? $tiles[$i - 1] : null;
-                $this->getAllExitTypes(self::DIRECTION_LEFT, $allExits, $tile);
+                if ($this->getTileIsAtBorder($i, $direction)) {
+                    // Top row can not have exit at top
+                    $allExits->forbidden += $direction;
+                } else {
+                    $tile = $this->getTileInDirection($i, $direction);
+                    $this->getAllExitTypes($direction, $allExits, $tile);
+                }
             }
 
             echo "**********************************\n";
@@ -154,10 +137,8 @@ class TileCanvas
             $tileObj = TileFactory::getInstance('doubleCurvy');
             $tileObj->setType($selectedTile['type']);
             $tileObj->setRotation($selectedTile['rotation']);
-            $tiles[$i] = $tileObj;
+            $this->tiles[$i] = $tileObj;
         }
-
-        $this->tiles = $tiles;
     }
 
     private function getAllExitTypes(
@@ -291,6 +272,72 @@ class TileCanvas
         }
 
         return $eligibleTiles;
+    }
+
+    /**
+     * @param $currentIndex
+     * @param $direction
+     * @return null|TileInterface
+     * @throws Exception
+     */
+    private function getTileInDirection($currentIndex, $direction)
+    {
+        $index = null;
+        $cols = $this->getCols();
+
+        switch ($direction) {
+            case self::DIRECTION_TOP:
+                $index = $currentIndex - $cols;
+                break;
+            case self::DIRECTION_RIGHT:
+                $index = $currentIndex + 1;
+                break;
+            case self::DIRECTION_BOTTOM:
+                $index = $currentIndex + $cols;
+                break;
+            case self::DIRECTION_LEFT:
+                $index = $currentIndex - 1;
+                break;
+            default:
+                throw new Exception('Illegal direction');
+                break;
+        }
+        $tile = isset($this->tiles[$index]) ? $this->tiles[$index] : null;
+
+        return $tile;
+    }
+
+    /**
+     * @param $currentIndex
+     * @param $direction
+     * @return bool
+     * @throws Exception
+     */
+    private function getTileIsAtBorder($currentIndex, $direction)
+    {
+        $cols = $this->getCols();
+        $totalTiles = $cols * $this->getRows();
+        $atBorder = false;
+
+        switch ($direction) {
+            case self::DIRECTION_TOP:
+                $atBorder = ($currentIndex - $cols <= 0);
+                break;
+            case self::DIRECTION_RIGHT:
+                $atBorder = ($currentIndex % $cols <= 0);
+                break;
+            case self::DIRECTION_BOTTOM:
+                $atBorder = ($currentIndex + $cols > $totalTiles);
+                break;
+            case self::DIRECTION_LEFT:
+                $atBorder = (($currentIndex - 1) % $cols == 0);
+                break;
+            default:
+                throw new Exception('Illegal direction');
+                break;
+        }
+
+        return $atBorder;
     }
 
     private function getRandomRotation()

@@ -5,6 +5,10 @@ use ReflectionClass;
 
 class TileFactory
 {
+    /**
+     * @param $style
+     * @return TileInterface
+     */
     public static function getInstance($style)
     {
         $className = __NAMESPACE__ . '\\Style\\' . ucfirst($style);

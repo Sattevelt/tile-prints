@@ -15,6 +15,8 @@ abstract class AbstractTile implements TileInterface
 
     abstract public function getStandardExits($type);
 
+    abstract public function getTypes();
+
     /**
      * @return string
      */
@@ -44,6 +46,9 @@ abstract class AbstractTile implements TileInterface
      */
     public function setRotation($rotation)
     {
+        if ($rotation % 90 != 0) {
+            throw new Exception('Invalid tile rotation value: ' . (int)$rotation);
+        }
         $this->rotation = $rotation;
     }
 

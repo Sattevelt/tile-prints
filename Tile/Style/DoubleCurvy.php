@@ -30,6 +30,11 @@ class DoubleCurvy extends AbstractTile
         return $this->standardExits[$type];
     }
 
+    public function getTypes()
+    {
+        return array_keys($this->standardExits);
+    }
+
     public function renderZero()
     {
         return '';

@@ -20,18 +20,31 @@ class TileCanvas
     /** @var int */
     private $cols = 4;
 
+    /** @var TileFactory */
+    private $tileFactory;
+
     /** @var TileInterface[]  */
     private $tiles = array();
+
+    /** @var array */
+    private $directions = array();
 
     const DIRECTION_TOP = 1;
     const DIRECTION_RIGHT = 2;
     const DIRECTION_BOTTOM = 4;
     const DIRECTION_LEFT = 8;
 
-    public function __construct($cols = 4, $rows = 4)
+    public function __construct($cols = 4, $rows = 4, TileFactory $tileFactory)
     {
         $this->setRows($rows);
         $this->setCols($cols);
+        $this->tileFactory = $tileFactory;
+        $this->directions = array(
+            self::DIRECTION_TOP,
+            self::DIRECTION_RIGHT,
+            self::DIRECTION_BOTTOM,
+            self::DIRECTION_LEFT
+        );
     }
 
     /**
@@ -85,38 +98,35 @@ class TileCanvas
      *
      * @throws \Exception
      */
-    public function generate()
+    public function generate($style)
     {
         $rows = $this->getRows();
         $cols = $this->getCols();
         $allExits = new stdClass();
         $totalTiles = $rows * $cols;
-        $directions = array(self::DIRECTION_TOP, self::DIRECTION_RIGHT, self::DIRECTION_BOTTOM, self::DIRECTION_LEFT);
 
         for ($i = 1; $i <= $totalTiles; $i++) {
             $allExits->possible = 0;
             $allExits->forbidden = 0;
             $allExits->required= 0;
 
-            foreach ($directions as $direction) {
-                if ($this->getTileIsAtBorder($i, $direction)) {
+            foreach ($this->directions as $direction) {
+                if ($this->isTileIsAtBorder($i, $direction)) {
                     $allExits->forbidden += $direction;
                 } else {
                     $tile = $this->getTileInDirection($i, $direction);
-                    $this->getAllExitTypes($direction, $allExits, $tile);
+                    $this->getAllTypeExits($direction, $allExits, $tile);
                 }
             }
-            $eligibleTiles = $this->getEligibleTileTypes($allExits);
 
-            $selectedTile = $eligibleTiles[array_rand($eligibleTiles, 1)];
-            $tileObj = TileFactory::getInstance('doubleCurvy');
-            $tileObj->setType($selectedTile['type']);
-            $tileObj->setRotation($selectedTile['rotation']);
-            $this->tiles[$i] = $tileObj;
+            $eligibleTiles = $this->getEligibleTileTypes($allExits, $style);
+            $selectedTile = $eligibleTiles[array_rand($eligibleTiles)];
+
+            $this->tiles[$i] = $selectedTile;
         }
     }
 
-    private function getAllExitTypes(
+    private function getAllTypeExits(
         $direction,
         $allExits,
         TileInterface $compareTile = null
@@ -190,61 +200,53 @@ class TileCanvas
      * - At least match all of the $requiredExits
      *
      * @param stdClass $exits
-     * @return array[] Tiles that fit all requirements given in the 3 exit ints.
+     * @param $style
+     * @return \array[] Tiles that fit all requirements given in the 3 exit ints.
      *                 array('type' =>, 'rotation' =>, 'exits' =>);
      */
-    public function getEligibleTileTypes($exits)
+    public function getEligibleTileTypes($exits, $style)
     {
+        $tile = $this->tileFactory->getInstance($style);
+        $tileTypes = $tile->getTypes();
         $eligibleTiles = array();
-        $allTiles = array( // All possible combo's. Filtered in giant if statement below.
-            array('type' => 'zero', 'rotation' => 0, 'exits' => 0b0000),
-            array('type' => 'one', 'rotation' => 0, 'exits' => 0b0001),
-            array('type' => 'one', 'rotation' => 90, 'exits' => 0b0010),
-            array('type' => 'one', 'rotation' => 180, 'exits' => 0b0100),
-            array('type' => 'one', 'rotation' => 270, 'exits' => 0b1000),
-            array('type' => 'twoStraight', 'rotation' => 0, 'exits' => 0b0101),
-            array('type' => 'twoStraight', 'rotation' => 90, 'exits' => 0b1010),
-            array('type' => 'twoAngle', 'rotation' => 0, 'exits' => 0b0011),
-            array('type' => 'twoAngle', 'rotation' => 90, 'exits' => 0b0110),
-            array('type' => 'twoAngle', 'rotation' => 180, 'exits' => 0b1100),
-            array('type' => 'twoAngle', 'rotation' => 270, 'exits' => 0b1001),
-            array('type' => 'three', 'rotation' => 0, 'exits' => 0b0111),
-            array('type' => 'three', 'rotation' => 90, 'exits' => 0b1110),
-            array('type' => 'three', 'rotation' => 180, 'exits' => 0b1101),
-            array('type' => 'three', 'rotation' => 270, 'exits' => 0b1011),
-            array('type' => 'four', 'rotation' => 0, 'exits' => 0b1111)
+        $this->directions = array(
+            self::DIRECTION_TOP,
+            self::DIRECTION_RIGHT,
+            self::DIRECTION_BOTTOM,
+            self::DIRECTION_LEFT
         );
-        echo "The following tiles are rejected: \n";
-        foreach ($allTiles as $tile) {
-            if (// Has forbidden exits?
-                ($tile['exits'] & $exits->forbidden)
-            ) {
-                echo ' - ' . $tile['type'] . ' | ' . $tile['rotation'] . ' : forbidden' . "\n";
-                continue;
-            }
-            if (// Has exit         of direction...           that is not part of $possibleExits
-                ($tile['exits'] & self::DIRECTION_TOP && ! ($exits->possible & self::DIRECTION_TOP)) ||
-                ($tile['exits'] & self::DIRECTION_RIGHT && ! ($exits->possible & self::DIRECTION_RIGHT)) ||
-                ($tile['exits'] & self::DIRECTION_BOTTOM && ! ($exits->possible & self::DIRECTION_BOTTOM)) ||
-                ($tile['exits'] & self::DIRECTION_LEFT && ! ($exits->possible & self::DIRECTION_LEFT))
-            ) {
-                echo ' - ' . $tile['type'] . ' | ' . $tile['rotation'] . ' : possible' . "\n";
-                continue;
-            }
-            if (// Required exit...  of direction...           is not available for current tile
-                ($exits->required & self::DIRECTION_TOP && ! ($tile['exits'] & self::DIRECTION_TOP)) ||
-                ($exits->required & self::DIRECTION_RIGHT && ! ($tile['exits'] & self::DIRECTION_RIGHT)) ||
-                ($exits->required & self::DIRECTION_BOTTOM && ! ($tile['exits'] & self::DIRECTION_BOTTOM)) ||
-                ($exits->required & self::DIRECTION_LEFT && ! ($tile['exits'] & self::DIRECTION_LEFT))
-            ) {
-                echo ' - ' . $tile['type'] . ' | ' . $tile['rotation'] . ' : required' . "\n";
-                continue;
-            }
 
-            $eligibleTiles[] = $tile;
+        foreach ($tileTypes as $tileType) {
+            for ($rotation = 0; $rotation < 360; $rotation += 90) {
+                $tile->setType($tileType);
+                $tile->setRotation($rotation);
+
+                if ($this->isEligibleTile($exits, $tile)) {
+                    $eligibleTiles[] = clone $tile;
+                }
+            }
         }
 
         return $eligibleTiles;
+    }
+
+    private function isEligibleTile($allExits, TileInterface $tile)
+    {
+        $tileExits = $tile->getExits();
+
+        if ($tileExits & $allExits->forbidden) {
+            return false;
+        }
+
+        foreach ($this->directions as $direction) {
+            if (($tileExits & $direction && !($allExits->possible & $direction)) ||
+                ($allExits->required & $direction && !($tileExits & $direction))
+            ) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     /**
@@ -284,7 +286,7 @@ class TileCanvas
      * @return bool
      * @throws Exception
      */
-    private function getTileIsAtBorder($currentIndex, $direction)
+    private function isTileIsAtBorder($currentIndex, $direction)
     {
         $cols = $this->getCols();
         $totalTiles = $cols * $this->getRows();

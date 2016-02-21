@@ -20,4 +20,9 @@ class TileMock extends AbstractTile
     {
         $this->standardExits = $standardExits;
     }
+
+    public function getTypes()
+    {
+        // TODO: Implement getTypes() method.
+    }
 }

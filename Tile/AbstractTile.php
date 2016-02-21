@@ -3,6 +3,7 @@ namespace Oneway\TilePrints\Tile;
 
 abstract class AbstractTile implements TileInterface
 {
+    protected $styles;
     /** @var int */
     private $rotation = 0;
     /** @var string */

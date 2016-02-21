@@ -27,24 +27,28 @@ $colorSets = array(
         'color' => '#173FAC',
         'bgcolor' => '#041033'
     ),
+    'moodyGrey' => array(
+        'color' => '#444444',
+        'bgcolor' => '#dddddd'
+    )
 );
-
+$colorSet = $colorSets['moodyGrey'];
 // Define a theme used for rendering
 $theme = new \Oneway\TilePrints\Tile\TileTheme();
-$theme->setBackgroundColor('#dddddd')
-      ->setStrokeColor('#444444')
-      ->setTileSize(30);
-
+$theme->setBackgroundColor($colorSet['bgcolor'])
+      ->setStrokeColor($colorSet['color'])
+      ->setTileSize(40);
+$tileFactory = new \Oneway\TilePrints\Tile\TileFactory();
 // Create a canvas of 10 by 10 tiles
-$canvas = new \Oneway\TilePrints\Tile\TileCanvas(50, 30);
+$canvas = new \Oneway\TilePrints\Tile\TileCanvas(15, 15, $tileFactory);
 
 // Capture debug output in the buffer
 ob_start();
-$canvas->generate();
+$canvas->generate('doubleCurvy');
 $debug = ob_get_contents();
 ob_end_clean();
 // Render ALL THE THINGS!!
 $svg = $canvas->render($theme, true);
 
 echo '<html><body>';
-echo $svg;// . '<textarea rows="30" cols="80">' . $debug . '</textarea></body></html>';
+echo $svg; // . '<textarea rows="30" cols="80">' . $debug . '</textarea></body></html>';

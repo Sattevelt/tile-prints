@@ -1,6 +1,8 @@
 <?php
 namespace Oneway\TilePrints\Tile;
 
+use Oneway\TilePrints\Tile\Exception\IllegalRotation;
+
 abstract class AbstractTile implements TileInterface
 {
     protected $styles;
@@ -47,7 +49,7 @@ abstract class AbstractTile implements TileInterface
     public function setRotation($rotation)
     {
         if ($rotation % 90 != 0) {
-            throw new Exception('Invalid tile rotation value: ' . (int)$rotation);
+            throw new IllegalRotation('Invalid tile rotation value: ' . (int)$rotation);
         }
         $this->rotation = $rotation;
     }

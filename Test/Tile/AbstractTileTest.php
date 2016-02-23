@@ -39,18 +39,57 @@ class AbstractTileTest extends \PHPUnit_Framework_TestCase
         $this->tileMock->setRotation($rotation);
     }
 
-
-    public function testForCoverage()
+    public function testGetStyleWithAllOptionsReturnsCssString()
     {
-        $rotation = 180;
-        $this->tileMock->setRotation($rotation);
-        $this->assertEquals($rotation, $this->tileMock->getRotation());
+        $tileThemeMock = $this->getMockBuilder('Oneway\\TilePrints\\Tile\\TileTheme')
+                              ->setMethods(array('getStrokeColor', 'getBackgroundColor', 'getTileSize'))
+                              ->getMock();
+        $tileThemeMock->expects($this->exactly(3))
+                      ->method('getStrokeColor')
+                      ->will($this->returnValue('#000000'));
+        $tileThemeMock->expects($this->exactly(3))
+                      ->method('getBackgroundColor')
+                      ->will($this->returnValue('#ffffff'));
+        $tileThemeMock->expects($this->once())
+                      ->method('getTileSize')
+                      ->will($this->returnValue(100));
 
-        $type = 'testType';
-        $this->tileMock->setType($type);
-        $this->assertEquals($type, $this->tileMock->getType());
+        $expect = '<defs><style type="text/css"><![CDATA[' . PHP_EOL
+                . '.testClass {stroke:#000000;stroke-width:8;fill:#ffffff;}' . PHP_EOL
+                . ']]></style></defs>';
+
+        $this->assertEquals($expect, $this->tileMock->getStyles($tileThemeMock));
     }
 
+    public function testRenderReturnsTileSvg()
+    {
+        $offsetX = 50;
+        $offsetY = 50;
+        $rotation = 270;
+        $tileSize = 150;
+        $this->tileMock->setType('testInnerSvg');
+        $this->tileMock->setRotation($rotation);
+
+        $tileThemeMock = $this->getMockBuilder('Oneway\\TilePrints\\Tile\\TileTheme')
+                              ->setMethods(array('getTileSize', 'getBackgroundColor', 'getStrokeColor'))
+                              ->getMock();
+        $tileThemeMock->expects($this->once())
+                      ->method('getTileSize')
+                      ->will($this->returnValue($tileSize));
+        $tileThemeMock->expects($this->once())
+                      ->method('getBackgroundColor')
+                      ->will($this->returnValue('#000000'));
+        $tileThemeMock->expects($this->once())
+                      ->method('getStrokeColor')
+                      ->will($this->returnValue('#ffffff'));
+
+        $expected = '<g transform="translate(50, 50) rotate(270, 75, 75)" >' . PHP_EOL
+                  . '<rect width="150" height="150" fill="#000000" stroke="#ffffff" stroke-width="0" />'
+                  . PHP_EOL . 'INNERSVG' . PHP_EOL . '</g>' . PHP_EOL;
+        $output = $this->tileMock->render($offsetX, $offsetY, $tileThemeMock);
+
+        $this->assertSame($expected, $output);
+    }
 
     public function getExitsDataProvider()
     {

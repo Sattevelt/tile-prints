@@ -5,7 +5,7 @@ use Oneway\TilePrints\Tile\Exception\IllegalRotation;
 
 abstract class AbstractTile implements TileInterface
 {
-    protected $styles;
+    protected $styles = [];
     /** @var int */
     private $rotation = 0;
     /** @var string */
@@ -112,6 +112,7 @@ abstract class AbstractTile implements TileInterface
     {
         $method = new \ReflectionMethod($this, 'render' . ucfirst($this->getType()));
         $innerSvg = $method->invoke($this, $theme);
+        $tileSize = $theme->getTileSize();
 
         $gProperties = array(
             'transform' => sprintf(
@@ -119,13 +120,13 @@ abstract class AbstractTile implements TileInterface
                 $offsetX,
                 $offsetY,
                 $this->getRotation(),
-                $theme->getTileSize() / 2,
-                $theme->getTileSize() / 2
+                $tileSize / 2,
+                $tileSize / 2
             ),
         );
         $rectProperties = array(
-            'width' => $theme->getTileSize(),
-            'height' => $theme->getTileSize(),
+            'width' => $tileSize,
+            'height' => $tileSize,
             'fill' => $theme->getBackgroundColor(),
             'stroke' => $theme->getStrokeColor(),
             'stroke-width' => 0 // Debug. Set to 0 for 'pretty' output
@@ -137,7 +138,7 @@ abstract class AbstractTile implements TileInterface
         }
         $outerFormat .= '>' . PHP_EOL;
 
-        $outerFormat .= '    <rect ';
+        $outerFormat .= '<rect ';
         foreach ($rectProperties as $key => $value) {
             $outerFormat .= $key . '="' . $value . '" ';
         }

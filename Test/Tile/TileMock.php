@@ -7,6 +7,14 @@ class TileMock extends AbstractTile
 {
     private $standardExits = 0b0;
 
+    protected $styles = array(
+        '.testClass' => array(
+            'stroke' => '#color#',
+            'stroke-width' => 8,
+            'fill' => '#bgcolor#'
+        )
+    );
+
     /**
      * @param $type
      * @return int
@@ -24,5 +32,10 @@ class TileMock extends AbstractTile
     public function getTypes()
     {
         // TODO: Implement getTypes() method.
+    }
+
+    public function renderTestInnerSvg()
+    {
+        return 'INNERSVG';
     }
 }

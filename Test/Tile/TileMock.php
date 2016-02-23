@@ -16,7 +16,7 @@ class TileMock extends AbstractTile
     );
 
     /**
-     * @param $type
+     * @param string $type
      * @return int
      */
     public function getStandardExits($type)

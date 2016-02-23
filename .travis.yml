@@ -4,4 +4,7 @@ php:
 - hhvm
 
 before_script: composer install
-script: phpunit --bootstrap bootstrap.php Test
+script:
+- phpunit --bootstrap bootstrap.php --coverage-clover=coverage.clover --whitelist Tile Test
+- wget https://scrutinizer-ci.com/ocular.phar
+- php ocular.phar code-coverage:upload --format=php-clover coverage.clover
